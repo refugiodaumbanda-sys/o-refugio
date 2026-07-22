@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>O Refúgio</title>
+<style>
+  :root {
+    --bg: #0b0a0d;
+    --bg-soft: #17151b;
+    --gold: #d1a656;
+    --gold-dim: #8a733a;
+    --ember: #e8b979;
+    --cream: #ece5d4;
+    --cream-dim: #a39c8a;
+    --line: #2a2730;
+    --wood: #3c2a1c;
+    --wood-dark: #241a11;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  button { font-family: inherit; }
+
+  .tela {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+  }
+  .tela.ativa { display: block; }
+
+  #entrada.ativa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: center;
+    padding: 0 0 40px;
+    background-image: url('imagens/porta.jpeg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  #entrada.ativa::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11,10,13,0.15) 0%, rgba(11,10,13,0.75) 78%, rgba(11,10,13,0.95) 100%);
+  }
+  #entrada .conteudo-entrada {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cena-porta {
+    position: relative;
+    width: min(230px, 55vw);
+    margin-bottom: 6px;
+  }
+  .cena-porta svg { width: 100%; display: block; }
+
+  .chama { transform-origin: bottom center; animation: tremular 3.2s ease-in-out infinite; }
+  .chama.d { animation-delay: .5s; }
+  @keyframes tremular {
+    0%, 100% { transform: scaleY(1) translateX(0); }
+    30% { transform: scaleY(1.12) translateX(-1px); }
+    60% { transform: scaleY(0.9) translateX(1px); }
+  }
+
+  .luz-fresta { animation: pulsar 4s ease-in-out infinite; }
+  @keyframes pulsar {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+  }
+
+  .pes-parados { width: min(120px, 30vw); margin: -6px auto 18px; }
+  .pes-parados svg { width: 100%; display: block; }
+
+  .frase-entrada {
+    font-size: clamp(1.05rem, 2.2vw, 1.4rem);
+    line-height: 1.5;
+    max-width: 480px;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: surgir 1.2s ease forwards;
+  }
+
+  @keyframes surgir {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .btn-iniciar {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    padding: 12px 44px;
+    font-size: 0.78rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .4s, color .4s;
+    opacity: 0;
+    animation: surgir 1.2s ease .4s forwards;
+  }
+  .btn-iniciar:hover { background: var(--gold); color: var(--bg); }
+
+  /* ============ TRANSIÇÃO (véu de luz) ============ */
+  #veu {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 55%, #fff7e6, #e9c98a 40%, #0b0a0d 90%);
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    filter: blur(0px);
+  }
+
+  /* ============ SALÃO / CARROSSEL DE EMOÇÕES ============ */
+  #corredor {
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: #0b0a0d;
+  }
+  #corredor.ativa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .sala-fundo {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+  }
+  .sala-fundo.ativa-fundo { opacity: 1; }
+
+  #corredor::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(11,10,13,0.1) 0%, rgba(11,10,13,0.55) 75%, rgba(11,10,13,0.85) 100%);
+    pointer-events: none;
+  }
+
+  .navegacao-salas {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    position: absolute;
+    top: 45%;
+  }
+
+  .seta-sala {
+    background: rgba(11,10,13,0.4);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .3s, transform .3s;
+  }
+  .seta-sala:hover { background: rgba(209,166,86,0.25); transform: scale(1.08); }
+
+  .rodape-sala {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 34px;
+  }
+
+  .nome-sala-atual {
+    font-size: 1rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+  }
+
+  .btn-entrar-sala {
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    padding: 11px 38px;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background .35s, color .35s;
+  }
+  .btn-entrar-sala:hover { background: var(--gold); color: var(--bg); }
+
+  /* ============ CONVERSA ============ */
+  #conversa {
+    padding: 50px 20px 24px;
+    max-width: 620px;
+    margin: 0 auto;
+    min-height: 100vh;
+  }
+  #conversa.ativa {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .conversa-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+  }
+  .conversa-nome { font-size: 1.1rem; color: var(--gold); }
+  .voltar {
+    background: none; border: none; color: var(--cream-dim);
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+  }
+  .voltar:hover { color: var(--cream); }
+
+  .mensagens {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 18px;
+    min-height: 280px;
+  }
+  .msg {
+    max-width: 85%;
+    padding: 13px 17px;
+    line-height: 1.55;
+    font-size: 0.96rem;
+    animation: surgir 0.5s ease forwards;
+  }
+  .msg.refugio { background: var(--bg-soft); border-left: 2px solid var(--gold); align-self: flex-start; }
+  .msg.pessoa { background: #1c1a22; align-self: flex-end; border-right: 2px solid #3a4a48; }
+  .msg.pensando { color: var(--cream-dim); font-style: italic; font-size: 0.85rem; align-self: flex-start; }
+
+  .chat-input-area { display: flex; gap: 10px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .chat-input {
+    flex: 1; background: var(--bg-soft); border: 1px solid var(--line); color: var(--cream);
+    font-family: Georgia, serif; font-size: 0.95rem; padding: 12px 16px; resize: none;
+  }
+  .chat-input:focus { outline: none; border-color: var(--gold); }
+  .chat-enviar {
+    background: var(--gold); border: none; color: var(--bg); font-size: 0.72rem;
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 0 18px; cursor: pointer;
+  }
+  .chat-enviar:disabled { opacity: 0.5; cursor: default; }
+
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chama, .luz-fresta, .frase-entrada, .btn-iniciar, .btn-avancar, .msg { animation: none !important; opacity: 1 !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div id="veu"></div>
+
+  <!-- ============ TELA 1: ENTRADA ============ -->
+  <section class="tela ativa" id="entrada">
+    <div class="conteudo-entrada">
+      <p class="frase-entrada">Você não precisa saber pra onde vai.<br>Só precisa dar o primeiro passo.</p>
+      <button class="btn-iniciar" onclick="iniciarJornada()">iniciar</button>
+    </div>
+  </section>
+
+  <!-- ============ TELA 2: SALÃO / CARROSSEL DE EMOÇÕES ============ -->
+  <section class="tela" id="corredor">
+    <div id="salasFundo"></div>
+
+    <div class="navegacao-salas">
+      <button class="seta-sala" onclick="girarCarrossel(-1)" aria-label="anterior">‹</button>
+      <button class="seta-sala" onclick="girarCarrossel(1)" aria-label="próxima">›</button>
+    </div>
+
+    <div class="rodape-sala">
+      <div class="nome-sala-atual" id="nomeSalaAtual"></div>
+      <button class="btn-entrar-sala" id="btnEntrarSala" onclick="entrarNaSalaAtual()">entrar</button>
+    </div>
+  </section>
+
+  <!-- ============ TELA 3: CONVERSA ============ -->
+  <section class="tela" id="conversa">
+    <div class="conversa-topo">
+      <span class="conversa-nome" id="conversaNome">Dor</span>
+      <button class="voltar" onclick="voltarCorredor()">voltar</button>
+    </div>
+    <div class="mensagens" id="mensagens"></div>
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chatInput" rows="2" placeholder="Escreva o que quiser..."></textarea>
+      <button class="chat-enviar" id="chatEnviar" onclick="enviarMensagem()">enviar</button>
+    </div>
+  </section>
+
+<script>
+// Molde escalável: adicionar uma nova emoção no futuro é só inserir mais um item aqui.
+const EMOCOES = [
+  { nome: 'Dor',      imagem: 'imagens/dor.jpeg' },
+  { nome: 'Raiva',    imagem: 'imagens/raiva.jpeg' },
+  { nome: 'Saudade',  imagem: 'imagens/saudade.jpeg' },
+  { nome: 'Silêncio', imagem: 'imagens/silencio.jpeg' },
+  { nome: 'Recomeço', imagem: 'imagens/recomeco.jpeg' },
+];
+
+let emocaoIndex = 0;
+let portaAtual = '';
+let historico = [];
+
+function renderSalao() {
+  const fundoContainer = document.getElementById('salasFundo');
+  fundoContainer.innerHTML = EMOCOES.map((e, i) =>
+    `<div class="sala-fundo ${i === emocaoIndex ? 'ativa-fundo' : ''}" style="background-image:url('${e.imagem}')"></div>`
+  ).join('');
+  document.getElementById('nomeSalaAtual').textContent = EMOCOES[emocaoIndex].nome;
+}
+
+function girarCarrossel(direcao) {
+  emocaoIndex = (emocaoIndex + direcao + EMOCOES.length) % EMOCOES.length;
+  renderSalao();
+}
+
+function entrarNaSalaAtual() {
+  abrirPorta(EMOCOES[emocaoIndex].nome);
+}
+
+function iniciarJornada() {
+  const veu = document.getElementById('veu');
+  document.getElementById('entrada').classList.remove('ativa');
+  veu.style.transition = 'none';
+  veu.style.opacity = '1';
+  veu.style.filter = 'blur(14px)';
+  document.getElementById('corredor').classList.add('ativa');
+  emocaoIndex = 0;
+  renderSalao();
+
+  requestAnimationFrame(() => {
+    veu.style.transition = 'opacity 2.2s ease, filter 2.2s ease';
+    veu.style.opacity = '0';
+    veu.style.filter = 'blur(0px)';
+  });
+}
+
+function abrirPorta(nome) {
+  portaAtual = nome;
+  document.getElementById('corredor').classList.remove('ativa');
+  document.getElementById('conversa').classList.add('ativa');
+  document.getElementById('conversaNome').textContent = nome;
+  document.getElementById('mensagens').innerHTML = '';
+  historico = [];
+  gerarAberturaIA();
+}
+
+function voltarCorredor() {
+  document.getElementById('conversa').classList.remove('ativa');
+  document.getElementById('corredor').classList.add('ativa');
+}
+
+function adicionarMensagem(tipo, texto) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + tipo;
+  div.textContent = texto;
+  document.getElementById('mensagens').appendChild(div);
+  document.getElementById('mensagens').scrollTop = document.getElementById('mensagens').scrollHeight;
+  return div;
+}
+
+async function gerarAberturaIA() {
+  const pensando = adicionarMensagem('pensando', '...');
+  const systemPromptAbertura = `Você é a presença de "O Refúgio". A pessoa acabou de entrar no contexto "${portaAtual}".
+Gere APENAS a mensagem de abertura, como se você fosse alguém que se importa de verdade e está checando como ela está agora.
+Regras:
+- Nunca repita fórmulas prontas — cada saudação deve soar única e genuína, nunca decorada ou robótica, mesmo que a mesma pessoa já tenha entrado nesse contexto antes.
+- Frases curtas, com calor humano real.
+- Termine com uma pergunta suave e aberta, ligada ao contexto "${portaAtual}".
+- Nunca mencione que é uma IA, um app, ou um "projeto".
+- No máximo 2-3 frases.
+Responda em português.`;
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        max_tokens: 200,
+        system: systemPromptAbertura,
+        messages: [{ role: "user", content: "Gere a saudação de abertura agora." }]
+      })
+    });
+    const data = await response.json();
+    pensando.remove();
+    const abertura = (data.content && data.content[0]) ? data.content[0].text : 'Fico por perto. O que está presente em você agora?';
+    adicionarMensagem('refugio', abertura);
+    historico.push({ role: 'assistant', content: abertura });
+  } catch (e) {
+    pensando.remove();
+    adicionarMensagem('refugio', 'Fico por perto. O que está presente em você agora?');
+    console.error(e);
+  }
+}
+
+async function enviarMensagem() {
+  const input = document.getElementById('chatInput');
+  const texto = input.value.trim();
+  if (!texto) return;
+
+  adicionarMensagem('pessoa', texto);
+  historico.push({ role: 'user', content: texto });
+  input.value = '';
+  document.getElementById('chatEnviar').disabled = true;
+  const pensando = adicionarMensagem('pensando', '...');
+
+  const promptSistema = `Você é a presença de "O Refúgio", um espaço de acolhimento sobre o tema "${portaAtual}".
+Regras que você segue sempre, sem exceção:
+- Nunca tente resolver o problema da pessoa, nunca dê conselhos prontos ou soluções.
+- Nunca diagnostique ou rotule o que a pessoa sente.
+- Frases curtas, humanas, sem parecer um script.
+- SEMPRE termine sua resposta com uma pergunta suave — nunca feche o assunto. No máximo uma pergunta por resposta, mas ela é obrigatória.
+- Nunca mencione que você é uma IA, um aplicativo, ou um "projeto".
+- Se a pessoa mencionar risco grave a si mesma (vontade de se machucar, de morrer, de desistir da vida), acolha com seriedade total, sem soar automático, e mencione com clareza a linha CVV 188 como caminho de apoio imediato — sem abandonar o tom acolhedor.
+Responda em português.`;
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        max_tokens: 1000,
+        system: promptSistema,
+        messages: historico
+      })
+    });
+    const data = await response.json();
+    const textoResposta = (data.content && data.content[0]) ? data.content[0].text : 'Fico por perto, mesmo em silêncio.';
+    pensando.remove();
+    adicionarMensagem('refugio', textoResposta);
+    historico.push({ role: 'assistant', content: textoResposta });
+  } catch (e) {
+    pensando.remove();
+    adicionarMensagem('refugio', 'Algo me afastou por um instante. Ainda tô aqui — pode continuar?');
+    console.error(e);
+  } finally {
+    document.getElementById('chatEnviar').disabled = false;
+  }
+}
+
+document.getElementById('chatInput').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    enviarMensagem();
+  }
+});
+</script>
+
+</body>
+</html>
