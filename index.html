@@ -44,20 +44,36 @@
     justify-content: flex-end;
     text-align: center;
     padding: 0 0 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .fundo-blur {
+    position: absolute;
+    inset: -20px;
     background-image: url('imagens/porta.jpeg');
     background-size: cover;
     background-position: center;
-    position: relative;
+    filter: blur(28px) brightness(0.7);
+    transform: scale(1.15);
+  }
+  .fundo-nitido {
+    position: absolute;
+    inset: 0;
+    background-image: url('imagens/porta.jpeg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
   }
   #entrada.ativa::before {
     content: '';
     position: absolute;
     inset: 0;
     background: linear-gradient(180deg, rgba(11,10,13,0.15) 0%, rgba(11,10,13,0.75) 78%, rgba(11,10,13,0.95) 100%);
+    z-index: 1;
   }
   #entrada .conteudo-entrada {
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
 
   .cena-porta {
@@ -141,12 +157,25 @@
   .sala-fundo {
     position: absolute;
     inset: 0;
-    background-size: cover;
-    background-position: center;
     opacity: 0;
     transition: opacity 0.9s ease;
   }
   .sala-fundo.ativa-fundo { opacity: 1; }
+  .sala-fundo .camada-blur {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(28px) brightness(0.7);
+    transform: scale(1.15);
+  }
+  .sala-fundo .camada-nitida {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
 
   #corredor::after {
     content: '';
@@ -287,6 +316,8 @@
 
   <!-- ============ TELA 1: ENTRADA ============ -->
   <section class="tela ativa" id="entrada">
+    <div class="fundo-blur"></div>
+    <div class="fundo-nitido"></div>
     <div class="conteudo-entrada">
       <p class="frase-entrada">Você não precisa saber pra onde vai.<br>Só precisa dar o primeiro passo.</p>
       <button class="btn-iniciar" onclick="iniciarJornada()">iniciar</button>
@@ -337,9 +368,12 @@ let historico = [];
 
 function renderSalao() {
   const fundoContainer = document.getElementById('salasFundo');
-  fundoContainer.innerHTML = EMOCOES.map((e, i) =>
-    `<div class="sala-fundo ${i === emocaoIndex ? 'ativa-fundo' : ''}" style="background-image:url('${e.imagem}')"></div>`
-  ).join('');
+  fundoContainer.innerHTML = EMOCOES.map((e, i) => `
+    <div class="sala-fundo ${i === emocaoIndex ? 'ativa-fundo' : ''}">
+      <div class="camada-blur" style="background-image:url('${e.imagem}')"></div>
+      <div class="camada-nitida" style="background-image:url('${e.imagem}')"></div>
+    </div>
+  `).join('');
   document.getElementById('nomeSalaAtual').textContent = EMOCOES[emocaoIndex].nome;
 }
 
