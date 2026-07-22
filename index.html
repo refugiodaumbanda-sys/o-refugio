@@ -165,7 +165,7 @@
     transition: opacity 0.9s ease;
   }
   .sala-fundo.ativa-fundo { opacity: 1; }
-  .sala-fundo .camada-blur {
+  .camada-blur {
     position: absolute;
     inset: -20px;
     background-size: cover;
@@ -173,7 +173,7 @@
     filter: blur(28px) brightness(0.7);
     transform: scale(1.15);
   }
-  .sala-fundo .camada-nitida {
+  .camada-nitida {
     position: absolute;
     inset: 0;
     background-size: contain;
@@ -255,10 +255,28 @@
     max-width: 620px;
     margin: 0 auto;
     min-height: 100vh;
+    position: relative;
+    overflow: hidden;
   }
   #conversa.ativa {
     display: flex;
     flex-direction: column;
+  }
+  #conversaFundo {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  #conversa::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(11,10,13,0.62);
+    z-index: 0;
+  }
+  .conversa-topo, .mensagens, .chat-input-area {
+    position: relative;
+    z-index: 1;
   }
 
   .conversa-topo {
@@ -345,6 +363,7 @@
 
   <!-- ============ TELA 3: CONVERSA ============ -->
   <section class="tela" id="conversa">
+    <div id="conversaFundo"></div>
     <div class="conversa-topo">
       <span class="conversa-nome" id="conversaNome">Dor</span>
       <button class="voltar" onclick="voltarCorredor()">voltar</button>
@@ -409,6 +428,11 @@ function iniciarJornada() {
 
 function abrirPorta(nome) {
   portaAtual = nome;
+  const emocao = EMOCOES.find(e => e.nome === nome);
+  document.getElementById('conversaFundo').innerHTML = emocao ? `
+    <div class="camada-blur" style="background-image:url('${emocao.imagem}')"></div>
+    <div class="camada-nitida" style="background-image:url('${emocao.imagem}')"></div>
+  ` : '';
   document.getElementById('corredor').classList.remove('ativa');
   document.getElementById('conversa').classList.add('ativa');
   document.getElementById('conversaNome').textContent = nome;
