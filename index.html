@@ -78,8 +78,11 @@
     55% { filter: brightness(0.97); }
     70% { filter: brightness(1.03); }
   }
-  .fundo-nitido, .camada-nitida {
+  .fundo-nitido {
     animation: kenburns 22s ease-in-out infinite alternate, brilhoVela 3.2s ease-in-out infinite;
+  }
+  .camada-nitida {
+    animation: brilhoVela 3.2s ease-in-out infinite;
   }
 
   .particulas {
@@ -471,7 +474,6 @@
 
 <script>
 // Molde escalável: adicionar uma nova emoção no futuro é só inserir mais um item aqui.
-
 const EMOCOES = [
   { nome: 'Dor',      imagem: 'imagens/dor.jpeg' },
   { nome: 'Raiva',    imagem: 'imagens/raiva.jpeg' },
@@ -583,6 +585,29 @@ function adicionarMensagem(tipo, texto) {
   return div;
 }
 
+// Extrai o texto de forma segura de qualquer resposta da API,
+// não importa a ordem dos blocos (texto, pensamento, etc).
+function extrairTexto(data, textoPadrao) {
+  if (data && data.error) {
+    console.error('A API devolveu um erro:', data.error);
+    return textoPadrao;
+  }
+  if (data && Array.isArray(data.content)) {
+    const bloco = data.content.find(b => b && b.type === 'text' && typeof b.text === 'string' && b.text.trim().length > 0);
+    if (bloco) return bloco.text;
+  }
+  console.error('Resposta em formato inesperado:', data);
+  return textoPadrao;
+}
+
+// Adiciona ao histórico só se for uma mensagem válida e completa.
+// Isso impede que qualquer falha contamine as próximas chamadas à API.
+function registrarNoHistorico(role, content) {
+  if (typeof content === 'string' && content.trim().length > 0) {
+    historico.push({ role, content });
+  }
+}
+
 async function gerarAberturaIA() {
   const pensando = adicionarMensagem('pensando', '...');
   const systemPromptAbertura = `Você é a presença de "O Refúgio". A pessoa acabou de entrar no contexto "${portaAtual}".
@@ -607,9 +632,9 @@ Responda em português.`;
     });
     const data = await response.json();
     pensando.remove();
-    const abertura = (data.content && data.content[0]) ? data.content[0].text : 'Fico por perto. O que está presente em você agora?';
+    const abertura = extrairTexto(data, 'Fico por perto. O que está presente em você agora?');
     adicionarMensagem('refugio', abertura);
-    historico.push({ role: 'assistant', content: abertura });
+    registrarNoHistorico('assistant', abertura);
   } catch (e) {
     pensando.remove();
     adicionarMensagem('refugio', 'Fico por perto. O que está presente em você agora?');
@@ -623,7 +648,7 @@ async function enviarMensagem() {
   if (!texto) return;
 
   adicionarMensagem('pessoa', texto);
-  historico.push({ role: 'user', content: texto });
+  registrarNoHistorico('user', texto);
   input.value = '';
   document.getElementById('chatEnviar').disabled = true;
   const pensando = adicionarMensagem('pensando', '...');
@@ -649,10 +674,10 @@ Responda em português.`;
       })
     });
     const data = await response.json();
-    const textoResposta = (data.content && data.content[0]) ? data.content[0].text : 'Fico por perto, mesmo em silêncio.';
+    const textoResposta = extrairTexto(data, 'Fico por perto, mesmo em silêncio.');
     pensando.remove();
     adicionarMensagem('refugio', textoResposta);
-    historico.push({ role: 'assistant', content: textoResposta });
+    registrarNoHistorico('assistant', textoResposta);
   } catch (e) {
     pensando.remove();
     adicionarMensagem('refugio', 'Algo me afastou por um instante. Ainda tô aqui — pode continuar?');
