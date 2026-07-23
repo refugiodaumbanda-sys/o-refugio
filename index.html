@@ -67,11 +67,19 @@
     background-repeat: no-repeat;
     background-position: center bottom;
     transform-origin: bottom center;
-    animation: kenburns 22s ease-in-out infinite alternate;
   }
   @keyframes kenburns {
     0% { transform: scale(1.12); }
     100% { transform: scale(1.2); }
+  }
+  @keyframes brilhoVela {
+    0%, 100% { filter: brightness(1); }
+    45% { filter: brightness(1.05); }
+    55% { filter: brightness(0.97); }
+    70% { filter: brightness(1.03); }
+  }
+  .fundo-nitido, .camada-nitida {
+    animation: kenburns 22s ease-in-out infinite alternate, brilhoVela 3.2s ease-in-out infinite;
   }
 
   .particulas {
@@ -240,7 +248,6 @@
     background-repeat: no-repeat;
     background-position: center bottom;
     transform-origin: bottom center;
-    animation: kenburns 22s ease-in-out infinite alternate;
   }
 
   #corredor::after {
@@ -470,8 +477,8 @@ const EMOCOES = [
   { nome: 'Saudade',  imagem: 'imagens/saudade.jpeg' },
   { nome: 'Silêncio', imagem: 'imagens/silencio.jpeg' },
   { nome: 'Recomeço', imagem: 'imagens/recomeco.jpeg' },
-  { nome: 'Fé',       imagem: 'imagens/fe.jpeg' },
-  { nome: 'Novos Caminhos', imagem: 'imagens/novoscaminhos.jpeg' },
+  { nome: 'Fé',       imagem: 'imagens/07 FÉ.jpeg' },
+  { nome: 'Novos Caminhos', imagem: 'imagens/08 NOVOS CAMINHOS.jpeg' },
 ];
 
 let somLigado = false;
@@ -497,8 +504,8 @@ function renderSalao() {
   const fundoContainer = document.getElementById('salasFundo');
   fundoContainer.innerHTML = EMOCOES.map((e, i) => `
     <div class="sala-fundo ${i === emocaoIndex ? 'ativa-fundo' : ''}">
-      <div class="camada-blur" style="background-image:url('${e.imagem}')"></div>
-      <div class="camada-nitida" style="background-image:url('${e.imagem}')"></div>
+      <div class="camada-blur" style="background-image:url('${encodeURI(e.imagem)}')"></div>
+      <div class="camada-nitida" style="background-image:url('${encodeURI(e.imagem)}')"></div>
     </div>
   `).join('');
   document.getElementById('nomeSalaAtual').textContent = EMOCOES[emocaoIndex].nome;
@@ -549,8 +556,8 @@ function abrirPorta(nome) {
   portaAtual = nome;
   const emocao = EMOCOES.find(e => e.nome === nome);
   document.getElementById('conversaFundo').innerHTML = emocao ? `
-    <div class="camada-blur" style="background-image:url('${emocao.imagem}')"></div>
-    <div class="camada-nitida" style="background-image:url('${emocao.imagem}')"></div>
+    <div class="camada-blur" style="background-image:url('${encodeURI(emocao.imagem)}')"></div>
+    <div class="camada-nitida" style="background-image:url('${encodeURI(emocao.imagem)}')"></div>
   ` : '';
   document.getElementById('corredor').classList.remove('ativa');
   document.getElementById('conversa').classList.add('ativa');
