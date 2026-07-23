@@ -65,7 +65,46 @@
     background-image: url('imagens/porta.jpeg');
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center;
+    background-position: center bottom;
+    transform-origin: bottom center;
+    animation: kenburns 22s ease-in-out infinite alternate;
+  }
+  @keyframes kenburns {
+    0% { transform: scale(1.12); }
+    100% { transform: scale(1.2); }
+  }
+
+  .particulas {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .particulas span {
+    position: absolute;
+    bottom: -10px;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #f5d98a;
+    opacity: 0;
+    box-shadow: 0 0 6px 2px rgba(245,217,138,0.6);
+    animation: subir 9s linear infinite;
+  }
+  .particulas span:nth-child(1) { left: 12%; animation-delay: 0s; animation-duration: 8s; }
+  .particulas span:nth-child(2) { left: 28%; animation-delay: 1.5s; animation-duration: 10s; }
+  .particulas span:nth-child(3) { left: 45%; animation-delay: 3s; animation-duration: 9s; }
+  .particulas span:nth-child(4) { left: 60%; animation-delay: 0.8s; animation-duration: 11s; }
+  .particulas span:nth-child(5) { left: 73%; animation-delay: 4s; animation-duration: 8.5s; }
+  .particulas span:nth-child(6) { left: 85%; animation-delay: 2.2s; animation-duration: 9.5s; }
+  .particulas span:nth-child(7) { left: 20%; animation-delay: 5s; animation-duration: 10.5s; }
+  .particulas span:nth-child(8) { left: 55%; animation-delay: 6s; animation-duration: 8s; }
+  @keyframes subir {
+    0% { transform: translateY(0); opacity: 0; }
+    12% { opacity: 0.85; }
+    85% { opacity: 0.3; }
+    100% { transform: translateY(-340px); opacity: 0; }
   }
   #entrada.ativa::before {
     content: '';
@@ -144,6 +183,27 @@
     filter: blur(0px);
   }
 
+  .btn-som {
+    position: fixed;
+    bottom: 18px;
+    right: 18px;
+    z-index: 60;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(11,10,13,0.55);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background .3s, transform .3s;
+  }
+  .btn-som:hover { background: rgba(209,166,86,0.25); transform: scale(1.06); }
+
   /* ============ SALÃO / CARROSSEL DE EMOÇÕES ============ */
   #corredor {
     min-height: 100vh;
@@ -178,7 +238,9 @@
     inset: 0;
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center;
+    background-position: center bottom;
+    transform-origin: bottom center;
+    animation: kenburns 22s ease-in-out infinite alternate;
   }
 
   #corredor::after {
@@ -205,10 +267,10 @@
     background: rgba(11,10,13,0.4);
     border: 1px solid var(--gold-dim);
     color: var(--gold);
-    width: 42px;
-    height: 42px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -248,6 +310,23 @@
     transition: background .35s, color .35s;
   }
   .btn-entrar-sala:hover { background: var(--gold); color: var(--bg); }
+
+  .btn-voltar-inicio {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    z-index: 2;
+    background: none;
+    border: none;
+    color: var(--cream-dim);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.3s, color 0.3s;
+  }
+  .btn-voltar-inicio:hover { opacity: 1; color: var(--cream); }
 
   /* ============ CONVERSA ============ */
   #conversa {
@@ -328,7 +407,7 @@
   :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
   @media (prefers-reduced-motion: reduce) {
-    .chama, .luz-fresta, .frase-entrada, .btn-iniciar, .btn-avancar, .msg { animation: none !important; opacity: 1 !important; }
+    .chama, .luz-fresta, .frase-entrada, .btn-iniciar, .btn-avancar, .msg, .fundo-nitido, .camada-nitida, .particulas span { animation: none !important; opacity: 1 !important; }
   }
 </style>
 </head>
@@ -336,10 +415,14 @@
 
   <div id="veu"></div>
 
+  <audio id="musicaAmbiente" src="musica.mp3" loop preload="none"></audio>
+  <button id="btnSom" class="btn-som" onclick="alternarSom()" aria-label="ligar ou desligar som">🔇</button>
+
   <!-- ============ TELA 1: ENTRADA ============ -->
   <section class="tela ativa" id="entrada">
     <div class="fundo-blur"></div>
     <div class="fundo-nitido"></div>
+    <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <div class="conteudo-entrada">
       <p class="frase-entrada">Você não precisa saber pra onde vai.<br>Só precisa dar o primeiro passo.</p>
       <button class="btn-iniciar" onclick="iniciarJornada()">iniciar</button>
@@ -349,6 +432,7 @@
   <!-- ============ TELA 2: SALÃO / CARROSSEL DE EMOÇÕES ============ -->
   <section class="tela" id="corredor">
     <div id="salasFundo"></div>
+    <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
 
     <div class="navegacao-salas">
       <button class="seta-sala" onclick="girarCarrossel(-1)" aria-label="anterior">‹</button>
@@ -359,11 +443,14 @@
       <div class="nome-sala-atual" id="nomeSalaAtual"></div>
       <button class="btn-entrar-sala" id="btnEntrarSala" onclick="entrarNaSalaAtual()">entrar</button>
     </div>
+
+    <button class="btn-voltar-inicio" onclick="voltarInicio()">‹ voltar ao início</button>
   </section>
 
   <!-- ============ TELA 3: CONVERSA ============ -->
   <section class="tela" id="conversa">
     <div id="conversaFundo"></div>
+    <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <div class="conversa-topo">
       <span class="conversa-nome" id="conversaNome">Dor</span>
       <button class="voltar" onclick="voltarCorredor()">voltar</button>
@@ -383,7 +470,24 @@ const EMOCOES = [
   { nome: 'Saudade',  imagem: 'imagens/saudade.jpeg' },
   { nome: 'Silêncio', imagem: 'imagens/silencio.jpeg' },
   { nome: 'Recomeço', imagem: 'imagens/recomeco.jpeg' },
+  { nome: 'Fé',       imagem: 'imagens/fe.jpeg' },
+  { nome: 'Novos Caminhos', imagem: 'imagens/novoscaminhos.jpeg' },
 ];
+
+let somLigado = false;
+function alternarSom() {
+  const audio = document.getElementById('musicaAmbiente');
+  const btn = document.getElementById('btnSom');
+  somLigado = !somLigado;
+  if (somLigado) {
+    audio.volume = 0.35;
+    audio.play().catch(() => {});
+    btn.textContent = '🔊';
+  } else {
+    audio.pause();
+    btn.textContent = '🔇';
+  }
+}
 
 let emocaoIndex = 0;
 let portaAtual = '';
@@ -407,6 +511,21 @@ function girarCarrossel(direcao) {
 
 function entrarNaSalaAtual() {
   abrirPorta(EMOCOES[emocaoIndex].nome);
+}
+
+function voltarInicio() {
+  const veu = document.getElementById('veu');
+  veu.style.transition = 'none';
+  veu.style.opacity = '1';
+  veu.style.filter = 'blur(10px)';
+  document.getElementById('corredor').classList.remove('ativa');
+  document.getElementById('entrada').classList.add('ativa');
+
+  requestAnimationFrame(() => {
+    veu.style.transition = 'opacity 1.6s ease, filter 1.6s ease';
+    veu.style.opacity = '0';
+    veu.style.filter = 'blur(0px)';
+  });
 }
 
 function iniciarJornada() {
