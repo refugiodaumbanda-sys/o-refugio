@@ -59,14 +59,13 @@
     filter: blur(28px) brightness(0.7);
     transform: scale(1.15);
   }
-  .fundo-nitido {
+  .video-porta {
     position: absolute;
     inset: 0;
-    background-image: url('imagens/porta.jpeg');
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center 75%;
-    transform-origin: bottom center;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center 75%;
   }
   @keyframes kenburns {
     0% { transform: scale(1.12); }
@@ -77,9 +76,6 @@
     45% { filter: brightness(1.05); }
     55% { filter: brightness(0.97); }
     70% { filter: brightness(1.03); }
-  }
-  .fundo-nitido {
-    animation: kenburns 22s ease-in-out infinite alternate, brilhoVela 3.2s ease-in-out infinite;
   }
   .camada-nitida {
     animation: brilhoVela 3.2s ease-in-out infinite;
@@ -127,6 +123,7 @@
   #entrada .conteudo-entrada {
     position: relative;
     z-index: 2;
+    transition: opacity .6s ease;
   }
 
   .cena-porta {
@@ -340,7 +337,7 @@
 
   /* ============ CONVERSA ============ */
   #conversa {
-    padding: 50px 20px 24px;
+    padding: 0 0 24px;
     max-width: 620px;
     margin: 0 auto;
     min-height: 100vh;
@@ -352,16 +349,24 @@
     flex-direction: column;
   }
   #conversaFundo {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
+    position: relative;
+    width: 100%;
+    height: 200px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
   }
-  #conversa::after {
+  #conversaFundo::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(11,10,13,0.62);
-    z-index: 0;
+    background: linear-gradient(180deg, rgba(11,10,13,0.1) 0%, rgba(11,10,13,0.9) 100%);
+  }
+  .conversa-conteudo {
+    padding: 20px 20px 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
   }
   .conversa-topo, .mensagens, .chat-input-area {
     position: relative;
@@ -389,7 +394,6 @@
     flex-direction: column;
     gap: 15px;
     margin-bottom: 18px;
-    min-height: 280px;
   }
   .msg {
     max-width: 85%;
@@ -431,11 +435,13 @@
   <!-- ============ TELA 1: ENTRADA ============ -->
   <section class="tela ativa" id="entrada">
     <div class="fundo-blur"></div>
-    <div class="fundo-nitido"></div>
+    <video id="videoPorta" class="video-porta" muted playsinline preload="auto" poster="imagens/porta.jpeg">
+      <source src="porta.mp4" type="video/mp4">
+    </video>
     <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
     <div class="conteudo-entrada">
       <p class="frase-entrada">Você não precisa saber pra onde vai.<br>Só precisa dar o primeiro passo.</p>
-      <button class="btn-iniciar" onclick="iniciarJornada()">iniciar</button>
+      <button class="btn-iniciar" onclick="abrirPortaAnimada()">iniciar</button>
     </div>
   </section>
 
@@ -460,15 +466,16 @@
   <!-- ============ TELA 3: CONVERSA ============ -->
   <section class="tela" id="conversa">
     <div id="conversaFundo"></div>
-    <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-    <div class="conversa-topo">
-      <span class="conversa-nome" id="conversaNome">Dor</span>
-      <button class="voltar" onclick="voltarCorredor()">voltar</button>
-    </div>
-    <div class="mensagens" id="mensagens"></div>
-    <div class="chat-input-area">
-      <textarea class="chat-input" id="chatInput" rows="2" placeholder="Escreva o que quiser..."></textarea>
-      <button class="chat-enviar" id="chatEnviar" onclick="enviarMensagem()">enviar</button>
+    <div class="conversa-conteudo">
+      <div class="conversa-topo">
+        <span class="conversa-nome" id="conversaNome">Dor</span>
+        <button class="voltar" onclick="voltarCorredor()">voltar</button>
+      </div>
+      <div class="mensagens" id="mensagens"></div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" rows="2" placeholder="Escreva o que quiser..."></textarea>
+        <button class="chat-enviar" id="chatEnviar" onclick="enviarMensagem()">enviar</button>
+      </div>
     </div>
   </section>
 
@@ -556,13 +563,40 @@ function iniciarJornada() {
   });
 }
 
+// Toca o vídeo da porta abrindo uma única vez (sem loop) e só então
+// segue para o salão de emoções. Se o vídeo falhar por algum motivo,
+// segue em frente do mesmo jeito depois de um tempo de segurança.
+let portaAnimando = false;
+function abrirPortaAnimada() {
+  if (portaAnimando) return;
+  portaAnimando = true;
+
+  const video = document.getElementById('videoPorta');
+  const conteudo = document.querySelector('.conteudo-entrada');
+  if (conteudo) conteudo.style.opacity = '0';
+
+  let jaSeguiu = false;
+  function seguirParaCorredor() {
+    if (jaSeguiu) return;
+    jaSeguiu = true;
+    iniciarJornada();
+  }
+
+  if (video) {
+    video.currentTime = 0;
+    video.play().catch(() => seguirParaCorredor());
+    video.addEventListener('ended', seguirParaCorredor, { once: true });
+    setTimeout(seguirParaCorredor, 9000);
+  } else {
+    seguirParaCorredor();
+  }
+}
+
 function abrirPorta(nome) {
   portaAtual = nome;
   const emocao = EMOCOES.find(e => e.nome === nome);
-  document.getElementById('conversaFundo').innerHTML = emocao ? `
-    <div class="camada-blur" style="background-image:url('${encodeURI(emocao.imagem)}')"></div>
-    <div class="camada-nitida" style="background-image:url('${encodeURI(emocao.imagem)}')"></div>
-  ` : '';
+  const fundo = document.getElementById('conversaFundo');
+  fundo.style.backgroundImage = emocao ? `url('${encodeURI(emocao.imagem)}')` : '';
   document.getElementById('corredor').classList.remove('ativa');
   document.getElementById('conversa').classList.add('ativa');
   document.getElementById('conversaNome').textContent = nome;
