@@ -544,6 +544,16 @@ function voltarInicio() {
   document.getElementById('corredor').classList.remove('ativa');
   document.getElementById('entrada').classList.add('ativa');
 
+  // Restaura a tela de entrada ao estado original, como se fosse a primeira vez.
+  portaAnimando = false;
+  const conteudo = document.querySelector('.conteudo-entrada');
+  if (conteudo) conteudo.style.opacity = '1';
+  const video = document.getElementById('videoPorta');
+  if (video) {
+    video.pause();
+    video.currentTime = 0;
+  }
+
   requestAnimationFrame(() => {
     veu.style.transition = 'opacity 1.6s ease, filter 1.6s ease';
     veu.style.opacity = '0';
