@@ -41,27 +41,18 @@
   .tela.ativa { display: block; }
 
   #entrada.ativa {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
+    display: block;
+    min-height: 0;
     text-align: center;
     padding: 0 0 40px;
     position: relative;
     overflow: hidden;
   }
-  .fundo-blur {
-    position: absolute;
-    inset: -20px;
-    background: var(--bg);
-  }
   .video-porta {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    display: block;
     width: 100%;
-    height: 100%;
-    object-fit: contain;
-    object-position: center 75%;
+    height: auto;
   }
   @keyframes kenburns {
     0% { transform: scale(1.12); }
@@ -120,6 +111,7 @@
     position: relative;
     z-index: 2;
     transition: opacity .6s ease;
+    padding-top: 28px;
   }
 
   .cena-porta {
@@ -430,7 +422,6 @@
 
   <!-- ============ TELA 1: ENTRADA ============ -->
   <section class="tela ativa" id="entrada">
-    <div class="fundo-blur"></div>
     <video id="videoPorta" class="video-porta" muted playsinline preload="auto">
       <source src="porta.mp4" type="video/mp4">
     </video>
