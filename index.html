@@ -41,19 +41,21 @@
   .tela.ativa { display: block; }
 
   #entrada.ativa {
-    display: block;
-    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
     text-align: center;
     padding: 0 0 40px;
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
   }
   .video-porta {
-    position: relative;
-    display: block;
+    position: absolute;
+    inset: 0;
     width: 100%;
-    height: 58vh;
-    max-height: 480px;
+    height: 100%;
     object-fit: cover;
     object-position: center;
   }
@@ -114,7 +116,6 @@
     position: relative;
     z-index: 2;
     transition: opacity .6s ease;
-    padding-top: 28px;
   }
 
   .cena-porta {
