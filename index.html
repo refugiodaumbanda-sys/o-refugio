@@ -53,11 +53,7 @@
   .fundo-blur {
     position: absolute;
     inset: -20px;
-    background-image: url('imagens/porta.jpeg');
-    background-size: cover;
-    background-position: center;
-    filter: blur(28px) brightness(0.7);
-    transform: scale(1.15);
+    background: var(--bg);
   }
   .video-porta {
     position: absolute;
@@ -435,7 +431,7 @@
   <!-- ============ TELA 1: ENTRADA ============ -->
   <section class="tela ativa" id="entrada">
     <div class="fundo-blur"></div>
-    <video id="videoPorta" class="video-porta" muted playsinline preload="auto" poster="imagens/porta.jpeg">
+    <video id="videoPorta" class="video-porta" muted playsinline preload="auto">
       <source src="porta.mp4" type="video/mp4">
     </video>
     <div class="particulas"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
@@ -491,6 +487,15 @@ const EMOCOES = [
   { nome: 'Fé',       imagem: 'imagens/07 FÉ.jpeg' },
   { nome: 'Novos Caminhos', imagem: 'imagens/08 NOVOS CAMINHOS.jpeg' },
 ];
+
+// Força o navegador a renderizar o primeiro quadro do vídeo da porta,
+// parado, sem precisar de nenhuma imagem separada como poster.
+window.addEventListener('DOMContentLoaded', () => {
+  const v = document.getElementById('videoPorta');
+  if (v) {
+    v.play().then(() => v.pause()).catch(() => {});
+  }
+});
 
 let somLigado = false;
 function alternarSom() {
